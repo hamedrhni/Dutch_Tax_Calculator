@@ -88,5 +88,4 @@ This project is licensed under the MIT License - see the [LICENSE](./dutch-tax-c
 
 ## 🙏 Acknowledgments
 
-Originally developed by Stepan Suvorov (@stevermeister). This fork maintains the core functionality while providing an updated, community-maintained version.</content>
-<parameter name="filePath">c:\Users\hrahm\Downloads\taxnl\README.md
+Originally developed by Stepan Suvorov (@stevermeister). This fork maintains the core functionality while providing an updated, community-maintained version.
