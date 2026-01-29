@@ -1,0 +1,22 @@
+name: Publish to NPM
+on:
+  push:
+    ### Publish on new tag release
+    tags:
+      - v*
+jobs:
+  publish:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Publish to NPM
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          package: package.json
+          access: public

@@ -1,0 +1,378 @@
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+mat-card {
+  margin-left: 15px;
+  margin-right: 15px;
+  padding: 15px;
+  min-width: 310px;
+}
+
+mat-drawer-container {
+  height: 100vh;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar-title {
+  margin-left: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mat-mdc-checkbox.mat-primary {
+  max-height: 20px;
+}
+
+.mat-mdc-radio-button {
+  max-height: 35px;
+}
+
+.big-output {
+  font-size: x-large;
+}
+
+.list-style-type-none {
+  list-style-type: none;
+  margin-top: 4px;
+  padding-left: 5px;
+}
+
+.description {
+  font-size: 75%;
+}
+
+.disclaimer {
+  font-size: 75%;
+}
+
+/* Desktop styles */
+@media screen and (min-width: 601px) {
+}
+
+@media screen and (max-width: 600px) {
+  .github-link, .support-button {
+    display: none !important;
+  }
+
+  mat-form-field {
+    width: 40%;
+  }
+
+  mat-toolbar {
+    padding: 0 8px;
+  }
+
+  .big-output {
+    font-size: 1.2em;
+    font-weight: 500;
+  }
+
+  /* Report value cells: truncate with ellipsis on mobile */
+  td.report-value {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    cursor: default;
+  }
+  
+  /* Show pointer cursor only when text is actually overflowing */
+  td.report-value.has-overflow {
+    cursor: pointer;
+  }
+}
+
+/* Tooltip for displaying full value on mobile when text overflows */
+.value-tooltip {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 1000;
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Tooltip arrow pointing down to the cell */
+.value-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.ruling-radio-group {
+  display: flex;
+  flex-direction: column;
+  margin: 0 15px;
+  align-items: flex-start;
+}
+
+td.report-value {
+  text-align: right;
+}
+
+.mat-mdc-cell,
+.mdc-data-table__cell,
+.cdk-cell {
+  min-width: 140px;
+}
+
+.report-value-negative {
+  color: #FF3366;
+}
+
+.output-results-table {
+  width: 500px;
+  overflow: hidden;
+}
+
+.output-results-table table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+@media screen and (max-width: 900px) {
+  .output-results-table {
+    width: 100%;
+  }
+}
+
+@media (min-width: 576px) {
+  mat-sidenav {
+    width: 60% !important;
+  }
+}
+
+@media (min-width: 768px) {
+  mat-sidenav {
+    width: 40% !important;
+  }
+}
+
+@media (min-width: 992px) {
+  mat-sidenav {
+    width: 30% !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  mat-sidenav {
+    width: 30% !important;
+  }
+}
+
+/* Mode toggle styles */
+.mode-radio-group {
+  display: flex;
+  flex-direction: column;
+  margin: 8px 0;
+  gap: 8px;
+}
+
+.mode-radio-group .mat-mdc-radio-button {
+  margin-bottom: 4px;
+}
+
+/* Freelancer section styles */
+.freelancer-section {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.freelancer-section h3 {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.freelancer-section .mat-mdc-form-field {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* Info icon styles */
+.info-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin-left: 4px;
+  color: #666;
+  cursor: help;
+}
+
+/* Status boxes */
+.deduction-info {
+  background: #e3f2fd;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.deduction-info ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+}
+
+.deduction-info li {
+  margin-bottom: 4px;
+}
+
+.warning-box {
+  background: #fff3e0;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 12px 0;
+  border-left: 4px solid #ff9800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.warning-box mat-icon {
+  color: #ff9800;
+}
+
+.success-box {
+  background: #e8f5e9;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 12px 0;
+  border-left: 4px solid #4caf50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.success-box mat-icon {
+  color: #4caf50;
+}
+
+/* VAT section styles */
+.vat-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
+}
+
+.vat-section h3 {
+  margin-top: 0;
+}
+
+.vat-results {
+  margin-top: 16px;
+}
+
+.vat-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vat-table td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.vat-table td:last-child {
+  text-align: right;
+  font-family: monospace;
+}
+
+.vat-table .total-row {
+  background: #f5f5f5;
+}
+
+.vat-table .total-row td {
+  border-top: 2px solid #ddd;
+  padding-top: 12px;
+}
+
+/* International section styles */
+.treaty-info {
+  background: #f0f4c3;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.treaty-info p {
+  margin: 4px 0;
+}
+
+.treaty-notes {
+  font-style: italic;
+  color: #666;
+}
+
+/* Export buttons */
+.export-buttons {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.export-buttons button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Language toggle */
+.lang-toggle {
+  min-width: 48px !important;
+  margin-right: 8px;
+}
+
+/* Full width form fields */
+.full-width {
+  width: 100%;
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  .freelancer-section {
+    background: #333;
+  }
+
+  .deduction-info {
+    background: #1a237e;
+    color: #e3f2fd;
+  }
+
+  .warning-box {
+    background: #3e2723;
+    color: #fff3e0;
+  }
+
+  .success-box {
+    background: #1b5e20;
+    color: #e8f5e9;
+  }
+
+  .treaty-info {
+    background: #33691e;
+    color: #f0f4c3;
+  }
+}

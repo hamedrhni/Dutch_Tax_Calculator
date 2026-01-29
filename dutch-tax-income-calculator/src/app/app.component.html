@@ -1,0 +1,466 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button aria-label="menu icon" (click)="drawer.toggle()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span title="makes your work easy" class="toolbar-title">Dutch Tax Calculator</span>
+
+  <span class="spacer"></span>
+
+  <button mat-button (click)="toggleLanguage()" class="lang-toggle">
+    {{ currentLanguage === 'en' ? 'NL' : 'EN' }}
+  </button>
+
+  <a
+    mat-button
+    href="https://github.com/hamedrhni/Dutch_Tax_Calculator"
+    aria-label="GitHub Repository"
+    class="github-link"
+  >
+    <img
+      src="./assets/github-circle-white-transparent.svg"
+      alt="GitHub"
+      class="docs-angular-logo"
+    />
+    GitHub
+  </a>
+</mat-toolbar>
+
+<mat-drawer-container class="container" autosize>
+  <mat-drawer
+    #drawer
+    class="sidenav"
+    [opened]="screenWidth > 840"
+    [mode]="screenWidth > 840 ? 'side' : 'over'"
+  >
+    <!-- Mode Selection -->
+    <mat-card>
+      <h3>Calculator Mode</h3>
+      <mat-radio-group
+        [formControl]="calculatorMode"
+        class="mode-radio-group"
+        aria-label="Select calculator mode"
+      >
+        <mat-radio-button value="employee">Employee</mat-radio-button>
+        <mat-radio-button value="freelancer">Freelancer (ZZP)</mat-radio-button>
+        <mat-radio-button value="combined">Combined</mat-radio-button>
+      </mat-radio-group>
+    </mat-card>
+
+    <!-- Common Options -->
+    <mat-card>
+      <h3>Options</h3>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Tax Year</mat-label>
+        <mat-select [formControl]="selectedYear">
+          <mat-option *ngFor="let option of years" [value]="option">{{
+            option
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <ul class="list-style-type-none">
+        <li>
+          <mat-checkbox color="primary" [formControl]="older"
+            >66 years & older</mat-checkbox
+          >
+        </li>
+      </ul>
+
+      <!-- Employee-specific options -->
+      <ng-container *ngIf="calculatorMode.value === 'employee' || calculatorMode.value === 'combined'">
+        <ul class="list-style-type-none">
+          <li>
+            <mat-checkbox color="primary" [formControl]="allowance"
+              >Holiday allowance included</mat-checkbox
+            >
+          </li>
+          <li>
+            <mat-checkbox color="primary" [formControl]="ruling">
+              30% ruling
+              <mat-icon class="info-icon" [matTooltip]="getTooltip('ruling30')">info</mat-icon>
+            </mat-checkbox>
+          </li>
+        </ul>
+
+        <mat-radio-group
+          aria-labelledby="ruling-details"
+          class="ruling-radio-group"
+          [formControl]="rulingChoice"
+          *ngIf="ruling.value"
+        >
+          <mat-radio-button value="research">Scientific research</mat-radio-button>
+          <mat-radio-button value="young">Young with masters</mat-radio-button>
+          <mat-radio-button value="normal">Other</mat-radio-button>
+        </mat-radio-group>
+
+        <mat-form-field class="full-width" appearance="fill">
+          <mat-label>Week hours</mat-label>
+          <input matInput [formControl]="hoursAmount" type="number" />
+        </mat-form-field>
+      </ng-container>
+
+      <!-- Freelancer-specific options -->
+      <ng-container *ngIf="calculatorMode.value === 'freelancer' || calculatorMode.value === 'combined'">
+        <div [formGroup]="freelancerForm">
+          <ul class="list-style-type-none">
+            <li>
+              <mat-checkbox color="primary" formControlName="isStarter">
+                Starter (first 3 years)
+                <mat-icon class="info-icon" [matTooltip]="getTooltip('startersaftrek')">info</mat-icon>
+              </mat-checkbox>
+            </li>
+            <li>
+              <mat-checkbox color="primary" formControlName="hasPartner"
+                >Has fiscal partner</mat-checkbox
+              >
+            </li>
+          </ul>
+        </div>
+
+        <mat-checkbox color="primary" [formControl]="showVATCalculator">
+          Show VAT Calculator
+          <mat-icon class="info-icon" [matTooltip]="getTooltip('btw')">info</mat-icon>
+        </mat-checkbox>
+      </ng-container>
+    </mat-card>
+
+    <!-- International Options (Freelancer mode) -->
+    <mat-card *ngIf="calculatorMode.value === 'freelancer'">
+      <h3>International Tax</h3>
+      <ul class="list-style-type-none">
+        <li>
+          <mat-checkbox color="primary" [formControl]="isDutchResident"
+            >Dutch Tax Resident</mat-checkbox
+          >
+        </li>
+      </ul>
+
+      <mat-form-field appearance="fill" class="full-width" *ngIf="!isDutchResident.value">
+        <mat-label>Country of Residence</mat-label>
+        <mat-select [formControl]="residenceCountry">
+          <mat-optgroup label="EU Countries">
+            <mat-option *ngFor="let country of euCountries" [value]="country">
+              {{ country }}
+            </mat-option>
+          </mat-optgroup>
+          <mat-optgroup label="Non-EU Countries">
+            <mat-option *ngFor="let country of nonEuCountries" [value]="country">
+              {{ country }}
+            </mat-option>
+          </mat-optgroup>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="treaty-info" *ngIf="!isDutchResident.value && freelancerPaycheck?.treatyInfo">
+        <p><strong>Tax Treaty:</strong> {{ freelancerPaycheck.hasTreaty ? 'Yes' : 'No' }}</p>
+        <p><strong>Withholding Rate:</strong> {{ freelancerPaycheck.withholdingRate * 100 }}%</p>
+        <p class="treaty-notes">{{ freelancerPaycheck.treatyNotes }}</p>
+      </div>
+    </mat-card>
+
+    <!-- Extra Options -->
+    <mat-card>
+      <h3>Display Options</h3>
+      <ul class="list-style-type-none">
+        <ng-container *ngIf="calculatorMode.value === 'employee'">
+          <li *ngFor="let option of extraOptions">
+            <mat-checkbox
+              color="primary"
+              [checked]="option.checked"
+              (change)="option.checked = !option.checked; recalculate()"
+              >{{ option.title }}</mat-checkbox
+            >
+          </li>
+        </ng-container>
+        <ng-container *ngIf="calculatorMode.value === 'freelancer'">
+          <li *ngFor="let option of freelancerExtraOptions">
+            <mat-checkbox
+              color="primary"
+              [checked]="option.checked"
+              (change)="option.checked = !option.checked; recalculate()"
+              >{{ option.title }}</mat-checkbox
+            >
+          </li>
+        </ng-container>
+      </ul>
+    </mat-card>
+  </mat-drawer>
+
+  <!-- Main Input Area -->
+  <mat-card>
+    <!-- Employee Input -->
+    <div *ngIf="calculatorMode.value === 'employee' || calculatorMode.value === 'combined'">
+      <h3 *ngIf="calculatorMode.value === 'combined'">Employee Income</h3>
+      <mat-form-field>
+        <mat-label>Gross income</mat-label>
+        <input
+          matInput
+          [formControl]="income"
+          type="number"
+          inputmode="decimal"
+          class="big-input"
+          autofocus
+        />
+      </mat-form-field>
+
+      <mat-form-field class="big-input">
+        <mat-label>Period</mat-label>
+        <mat-select [formControl]="startFrom">
+          <mat-option
+            *ngFor="let option of ['Year', 'Month', 'Week', 'Day', 'Hour']"
+            [value]="option"
+            >{{ option }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Freelancer Input -->
+    <div *ngIf="calculatorMode.value === 'freelancer' || calculatorMode.value === 'combined'"
+         [formGroup]="freelancerForm"
+         class="freelancer-section">
+      <h3>
+        Freelancer Income
+        <mat-icon class="info-icon" [matTooltip]="getTooltip('zelfstandigenaftrek')">info</mat-icon>
+      </h3>
+
+      <mat-form-field class="full-width">
+        <mat-label>Gross Revenue (Year)</mat-label>
+        <input matInput formControlName="grossRevenue" type="number" />
+        <mat-hint>Total invoiced amount excl. VAT</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>Business Expenses (Year)</mat-label>
+        <input matInput formControlName="businessExpenses" type="number" />
+        <mat-hint>Deductible business costs</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>Hours Worked (Year)</mat-label>
+        <input matInput formControlName="hoursWorked" type="number" />
+        <mat-hint>Minimum 1,225 hours for deductions</mat-hint>
+      </mat-form-field>
+
+      <!-- Urencriterium Status -->
+      <div *ngIf="freelancerPaycheck" [ngClass]="meetsUrencriterium ? 'success-box' : 'warning-box'">
+        <mat-icon>{{ meetsUrencriterium ? 'check_circle' : 'warning' }}</mat-icon>
+        <span *ngIf="meetsUrencriterium">
+          Hours criterion met! You qualify for entrepreneur deductions.
+        </span>
+        <span *ngIf="!meetsUrencriterium">
+          Hours criterion not met ({{ freelancerPaycheck.hoursWorked }}/1,225 hours).
+          No zelfstandigenaftrek or startersaftrek available.
+        </span>
+      </div>
+
+      <!-- Deduction Info -->
+      <div class="deduction-info" *ngIf="freelancerPaycheck && meetsUrencriterium">
+        <p><strong>Available Deductions for {{ selectedYear.value }}:</strong></p>
+        <ul>
+          <li>
+            Zelfstandigenaftrek: {{ deductionRates.zelfstandigenaftrek | currency:'EUR' }}
+            <mat-icon class="info-icon" [matTooltip]="getTooltip('zelfstandigenaftrek')">info</mat-icon>
+          </li>
+          <li *ngIf="freelancerForm.get('isStarter')?.value">
+            Startersaftrek: {{ deductionRates.startersaftrek | currency:'EUR' }}
+            <mat-icon class="info-icon" [matTooltip]="getTooltip('startersaftrek')">info</mat-icon>
+          </li>
+          <li>
+            MKB-winstvrijstelling: {{ deductionRates.mkbWinstvrijstelling * 100 }}%
+            <mat-icon class="info-icon" [matTooltip]="getTooltip('mkbWinstvrijstelling')">info</mat-icon>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- VAT Calculator -->
+    <div *ngIf="showVATCalculator.value && (calculatorMode.value === 'freelancer' || calculatorMode.value === 'combined')"
+         [formGroup]="vatForm"
+         class="vat-section">
+      <h3>VAT (BTW) Calculator</h3>
+
+      <mat-form-field class="full-width">
+        <mat-label>Revenue @ 21% (Standard)</mat-label>
+        <input matInput formControlName="revenueStandard" type="number" />
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>Revenue @ 9% (Reduced)</mat-label>
+        <input matInput formControlName="revenueReduced" type="number" />
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>Revenue @ 0% (Zero-rated)</mat-label>
+        <input matInput formControlName="revenueZero" type="number" />
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>VAT on Expenses (Deductible)</mat-label>
+        <input matInput formControlName="expensesVAT" type="number" />
+      </mat-form-field>
+
+      <mat-form-field class="full-width">
+        <mat-label>Reverse Charge VAT (EU services)</mat-label>
+        <input matInput formControlName="reverseChargeVAT" type="number" />
+      </mat-form-field>
+
+      <!-- VAT Results -->
+      <div *ngIf="vatCalculation" class="vat-results">
+        <table class="vat-table">
+          <tr>
+            <td>VAT Collected (21%)</td>
+            <td>{{ vatCalculation.vatStandard | currency:'EUR' }}</td>
+          </tr>
+          <tr>
+            <td>VAT Collected (9%)</td>
+            <td>{{ vatCalculation.vatReduced | currency:'EUR' }}</td>
+          </tr>
+          <tr>
+            <td>Total VAT Collected</td>
+            <td>{{ vatCalculation.totalVATCollected | currency:'EUR' }}</td>
+          </tr>
+          <tr>
+            <td>VAT Deductible</td>
+            <td>-{{ vatCalculation.expensesVAT | currency:'EUR' }}</td>
+          </tr>
+          <tr class="total-row">
+            <td><strong>VAT Owed to Tax Authority</strong></td>
+            <td><strong>{{ vatCalculation.vatOwed | currency:'EUR' }}</strong></td>
+          </tr>
+        </table>
+
+        <div *ngIf="isKORApplicable" class="success-box">
+          <mat-icon>info</mat-icon>
+          <span>KOR (Kleine Ondernemersregeling) may apply - VAT owed is under 1,800/year.</span>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Results -->
+  <mat-card>
+    <h2>Calculations for {{ selectedYear.getRawValue() }}</h2>
+    <div class="results-container" style="display: flex; gap: 20px; align-items: flex-start;">
+      <section class="output-results-table mat-elevation-z8" tabindex="0">
+        <table mat-table [dataSource]="dataSource">
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <td mat-cell *matCellDef="let element" style="width: 60%;">{{ element.name }}</td>
+          </ng-container>
+
+          <!-- Value Column -->
+          <ng-container matColumnDef="value">
+            <td
+              mat-cell
+              *matCellDef="let element"
+              class="report-value"
+              [class.report-value-negative]="element.value < 0"
+              [class.big-output]="element.name === 'Month Net Income' || element.name === 'Net Income (Month)' || element.name === 'Total Net (Month)'"
+              [class.has-overflow]="cellsWithOverflow.has(element.name)"
+              [attr.data-cell-id]="element.name"
+              (click)="showTooltip(element.name, element, $event)"
+              (blur)="hideTooltip()"
+              (mouseleave)="hideTooltip()"
+              tabindex="0"
+              style="width: 40%;"
+            >
+              <ng-container *ngIf="element.name !== 'Ruling Real Percentage' && element.name !== 'Effective Tax Rate'">
+                <ng-container *ngIf="typeof element.value === 'number'">
+                  {{ element.value | currency : "EUR" : "symbol" }}
+                </ng-container>
+                <ng-container *ngIf="typeof element.value === 'string'">
+                  {{ element.value }}
+                </ng-container>
+              </ng-container>
+              <ng-container *ngIf="element.name === 'Ruling Real Percentage' || element.name === 'Effective Tax Rate'">
+                {{ element.value }}
+              </ng-container>
+            </td>
+          </ng-container>
+
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </section>
+
+      <div *ngIf="showDonateButton"
+           class="support-message mat-typography"
+           [@fadeInOut]
+           style="width: 300px; padding: 16px; background: #f8f9fa; border-radius: 8px; margin-top: 0;">
+        <p class="mat-body-1" style="color: #666; text-align: center; margin: 0;">
+          <mat-icon style="vertical-align: middle; color: #ff4081; margin-right: 8px;">schedule</mat-icon>
+          We've saved you ~{{ totalCalculations * MINUTES_PER_CALCULATION }} minutes!
+        </p>
+      </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="export-buttons">
+      <button mat-stroked-button color="primary" (click)="exportReport('csv')">
+        <mat-icon>download</mat-icon> Export CSV
+      </button>
+      <button mat-stroked-button color="primary" (click)="exportReport('json')">
+        <mat-icon>download</mat-icon> Export JSON
+      </button>
+    </div>
+  </mat-card>
+
+  <!-- Tooltip for mobile -->
+  <div
+    *ngIf="tooltipCell && tooltipPosition"
+    class="value-tooltip"
+    [style.left.px]="tooltipPosition.x"
+    [style.top.px]="tooltipPosition.y"
+    (click)="hideTooltip()"
+    (touchstart)="hideTooltip()"
+    role="tooltip"
+    aria-live="polite"
+  >
+    {{ tooltipValue }}
+  </div>
+
+  <app-ruling [year]="+(selectedYear.getRawValue() || 0)" *ngIf="calculatorMode.value === 'employee'"></app-ruling>
+
+  <!-- Freelancer Information -->
+  <mat-card *ngIf="calculatorMode.value === 'freelancer'" class="description">
+    <mat-card-content>
+      <h2>Freelancer Tax Information</h2>
+      <p><strong>Key Deductions for Self-Employed (ZZP'ers):</strong></p>
+      <ul>
+        <li><strong>Zelfstandigenaftrek:</strong> {{ deductionRates.zelfstandigenaftrek | currency:'EUR' }} (requires 1,225+ hours)</li>
+        <li><strong>Startersaftrek:</strong> {{ deductionRates.startersaftrek | currency:'EUR' }} (first 3 years)</li>
+        <li><strong>MKB-winstvrijstelling:</strong> {{ deductionRates.mkbWinstvrijstelling * 100 }}% of profit after deductions</li>
+        <li><strong>ZVW bijdrage:</strong> {{ deductionRates.zvwContribution?.rate * 100 }}% (max {{ deductionRates.zvwContribution?.maxIncome | currency:'EUR' }})</li>
+      </ul>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="description">
+    <mat-card-content>
+      <h2>Tax calculators worldwide</h2>
+      <p>
+        <a href="https://www.income-tax.co.uk/" rel="nofollow">UK</a>,
+        <a href="https://salaryaftertax.com/de/salary-calculator" rel="nofollow">Germany</a>,
+        <a href="https://thetax.nl/">Netherlands</a>,
+        <a href="https://relocate.me/net-pay-calculators" rel="follow">All in One</a>
+      </p>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="disclaimer">
+    <mat-card-content>
+      <p><strong>Disclaimer:</strong> This calculator is for illustrative purposes only. No
+      guarantee is made for the accuracy of the data provided. Consult a
+      qualified tax services professional before making any decision.</p>
+      <p>
+        <strong>Official sources:</strong>
+        <a href="https://www.belastingdienst.nl/" target="_blank" rel="noopener">Belastingdienst</a> |
+        <a href="https://www.kvk.nl/" target="_blank" rel="noopener">KVK (Chamber of Commerce)</a>
+      </p>
+      <p>
+        For professional tax advice, consider consulting a
+        <a href="https://www.noab.nl/" target="_blank" rel="noopener">NOAB-certified tax professional</a>.
+      </p>
+    </mat-card-content>
+  </mat-card>
+</mat-drawer-container>
