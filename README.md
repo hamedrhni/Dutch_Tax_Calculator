@@ -4,6 +4,8 @@
 
 A comprehensive Dutch tax calculation system consisting of a core NPM package and a modern Angular web application. Calculate income tax for both employees and freelancers (ZZP'ers) with accurate calculations based on current Dutch tax laws.
 
+![Dutch Tax Calculator](pics/main_page.jpg)
+
 ## 📦 Packages
 
 This monorepo contains two main packages:
